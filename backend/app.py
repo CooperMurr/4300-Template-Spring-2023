@@ -11,9 +11,9 @@ os.environ['ROOT_PATH'] = os.path.abspath(os.path.join("..",os.curdir))
 # These are the DB credentials for your OWN MySQL
 # Don't worry about the deployment credentials, those are fixed
 # You can use a different DB name if you want to
-MYSQL_USER = "bookbeats"
-MYSQL_USER_PASSWORD = "a0htd_dys"
-MYSQL_PORT = 4540
+MYSQL_USER = "root"
+MYSQL_USER_PASSWORD = "^R4CQ3B%ArKTp*"
+MYSQL_PORT = 3306
 MYSQL_DATABASE = "bookbeatsdb"
 
 mysql_engine = MySQLDatabaseHandler(MYSQL_USER,MYSQL_USER_PASSWORD,MYSQL_PORT,MYSQL_DATABASE)
@@ -28,9 +28,11 @@ CORS(app)
 # but if you decide to use SQLAlchemy ORM framework, 
 # there's a much better and cleaner way to do this
 def sql_search(episode):
-    query_sql = f"""SELECT * FROM text WHERE LOWER( text ) LIKE '%%{episode.lower()}%%' limit 10"""
+    query_sql = f"""SELECT * FROM songs WHERE LOWER( text ) LIKE '%%{episode.lower()}%%' limit 10"""
     keys = ["artist","song","link","text"]
     data = mysql_engine.query_selector(query_sql)
+    for i in data:
+        print(json.dumps(dict(zip(keys,i))))
     return json.dumps([dict(zip(keys,i)) for i in data])
 
 @app.route("/")
@@ -42,4 +44,4 @@ def episodes_search():
     text = request.args.get("title")
     return sql_search(text)
 
-# app.run(debug=True)
+app.run(debug=True)
