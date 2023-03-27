@@ -4,6 +4,8 @@ Docker/__pycache__
 
 venv/
 
+cs4300-env3
+
 *.pyc
 __pycache__/
 
