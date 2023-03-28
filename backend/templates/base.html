@@ -44,7 +44,7 @@
             var plHeader = document.createElement("h2");
             plHeader.innerHTML = "Recommended Playlist";
             document.getElementById("answer-box").appendChild(plHeader);
-            fetch("/episodes?" + new URLSearchParams({ title: document.getElementById("filter-text-val").value }).toString())
+            fetch("/songs?" + new URLSearchParams({ title: document.getElementById("filter-text-val").value }).toString())
                 .then((response) => response.json())
                 .then((data) => data.forEach(row => {
 
