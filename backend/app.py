@@ -11,9 +11,9 @@ os.environ['ROOT_PATH'] = os.path.abspath(os.path.join("..",os.curdir))
 # These are the DB credentials for your OWN MySQL
 # Don't worry about the deployment credentials, those are fixed
 # You can use a different DB name if you want to
-MYSQL_USER = "root"
-MYSQL_USER_PASSWORD = "^R4CQ3B%ArKTp*"
-MYSQL_PORT = 3306
+MYSQL_USER = "bookbeats"
+MYSQL_USER_PASSWORD = "a0htd_dys"
+MYSQL_PORT = 4540
 MYSQL_DATABASE = "bookbeatsdb"
 
 mysql_engine = MySQLDatabaseHandler(MYSQL_USER,MYSQL_USER_PASSWORD,MYSQL_PORT,MYSQL_DATABASE)
@@ -43,4 +43,4 @@ def episodes_search():
     ret = sql_search(text)
     return ret
 
-app.run(debug=True)
+#app.run(debug=True)
