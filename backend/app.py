@@ -12,7 +12,7 @@ os.environ['ROOT_PATH'] = os.path.abspath(os.path.join("..", os.curdir))
 # Don't worry about the deployment credentials, those are fixed
 # You can use a different DB name if you want to
 MYSQL_USER = "root"
-MYSQL_USER_PASSWORD = "bookbeats"
+MYSQL_USER_PASSWORD = "S3Aledes"
 MYSQL_PORT = 3306
 MYSQL_DATABASE = "bookbeatsdb"
 
@@ -29,7 +29,7 @@ CORS(app)
 # but if you decide to use SQLAlchemy ORM framework,
 # there's a much better and cleaner way to do this
 def sql_search(song):
-    inp = episode.split(";", 1)
+    inp = song.split(";", 1)
     book = inp[0]
     desc = inp[1]
     x = ""
