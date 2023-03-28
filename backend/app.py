@@ -29,15 +29,12 @@ CORS(app)
 # but if you decide to use SQLAlchemy ORM framework,
 # there's a much better and cleaner way to do this
 def sql_search(song):
-    #inp = song.split(";", 1)
-    #book = inp[0]
-    #desc = inp[1]
-    #x = ""
-    #for word in desc.split():
-        #x = x + "'%%" + word.lower() + "%%'" + " OR "
-    #x = x[:-4]
-    #query_sql = f"""SELECT * FROM songs WHERE LOWER( text ) LIKE {x} limit 10"""
-    query_sql = f"""SELECT * FROM songs WHERE LOWER( text ) LIKE '%%{song.lower()}%%' limit 10"""
+    x = ""
+    for word in song.split():
+        x = x + "'%%" + word.lower() + "%%'" + " OR "
+    x = x[:-4]
+    query_sql = f"""SELECT * FROM songs WHERE LOWER( text ) LIKE {x} limit 10"""
+    #query_sql = f"""SELECT * FROM songs WHERE LOWER( text ) LIKE '%%{song.lower()}%%' limit 10"""
     keys = ["artist", "song", "link", "text"]
     data = mysql_engine.query_selector(query_sql)
     return json.dumps([dict(zip(keys, i)) for i in data])
