@@ -15,7 +15,7 @@
             </div>
             <div class="input-box" onclick="sendFocus()">
                 <img src="{{ url_for('static', filename='images/mag.png') }}" />
-                <input placeholder="Give your playlist a theme" id="filter-text-val" onkeyup="filterText()">
+                <input placeholder="Give your playlist a theme" id="filter-text-val" onkeyup="checkEnter(event)">
             </div>
         </div>
         <div id="answer-box">
@@ -56,6 +56,12 @@
                     resultCounter++;
                 }));
 
+        }
+
+        function checkEnter(event) {
+            if (event.keyCode === 13) {
+                filterText();
+            }
         }
 
     </script>
