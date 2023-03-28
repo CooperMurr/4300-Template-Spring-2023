@@ -3,7 +3,8 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Source+Sans+Pro:wght@300&family=Open+Sans:wght@500&display=swap"
+<link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Source+Sans+Pro:wght@300&family=Open+Sans:wght@500&display=swap"
     rel="stylesheet">
 
 <body style="background-color:rgb(112, 57, 31);">
@@ -14,8 +15,7 @@
             </div>
             <div class="input-box" onclick="sendFocus()">
                 <img src="{{ url_for('static', filename='images/mag.png') }}" />
-                <input placeholder="Search for a song" id="filter-text-val"
-                    onkeyup="filterText()">
+                <input placeholder="Give your playlist a theme" id="filter-text-val" onkeyup="filterText()">
             </div>
         </div>
         <div id="answer-box">
@@ -24,11 +24,12 @@
     </div>
 
     <script>
+        const clientId = "62df10fd27b24fe3bbf1256444216cd0";
+        const code = undefined;
 
         function answerBoxTemplate(title, artist, link) {
-            return `<div class=''>
-                <h3 class='episode-title'>${title}</h3>
-                <h4 class='episode-title'>${artist}</h4>
+            return `<div class='results'>
+                <h3 class='episode-title'>${artist} - ${title}</h3>
                 <p class='episode-desc'>${link}</p>
             </div>`
         }
@@ -40,6 +41,9 @@
         function filterText() {
             document.getElementById("answer-box").innerHTML = ""
             console.log(document.getElementById("filter-text-val").value)
+            var plHeader = document.createElement("h2");
+            plHeader.innerHTML = "Recommended Playlist";
+            document.getElementById("answer-box").appendChild(plHeader);
             fetch("/episodes?" + new URLSearchParams({ title: document.getElementById("filter-text-val").value }).toString())
                 .then((response) => response.json())
                 .then((data) => data.forEach(row => {
