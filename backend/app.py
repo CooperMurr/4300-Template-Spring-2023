@@ -31,8 +31,6 @@ def sql_search(episode):
     query_sql = f"""SELECT * FROM songs WHERE LOWER( text ) LIKE '%%{episode.lower()}%%' limit 10"""
     keys = ["artist","song","link","text"]
     data = mysql_engine.query_selector(query_sql)
-    for i in data:
-        print(json.dumps(dict(zip(keys,i))))
     return json.dumps([dict(zip(keys,i)) for i in data])
 
 @app.route("/")
@@ -42,6 +40,7 @@ def home():
 @app.route("/episodes")
 def episodes_search():
     text = request.args.get("title")
-    return sql_search(text)
+    ret = sql_search(text)
+    return ret
 
 app.run(debug=True)

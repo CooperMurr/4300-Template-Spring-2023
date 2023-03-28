@@ -12,35 +12,16 @@
     flex-direction: column;
 }
 
-#google-c{
-    color:#4285F4;
-}
 
-#google-s{
-    color:#DB4437;
-}
-
-#google-4{
-    color:	#F4B400;
-}
-
-#google-3{
-    color:	#4285F4;
-}
-
-#google-0-1{
-    color:	#0F9D58;
-}
-
-#google-0-2{
-    color:#DB4437;
+#title{
+    color:papayawhip
 }
 
 .google-colors{
     display: flex;
     align-items: center;
     font-size: 48px;
-    font-family: 'Open Sans', sans-serif;
+    font-family: 'Playfair Display', serif;
 }
 
 .google-colors h1{
@@ -56,6 +37,8 @@
     margin-top: 10px;
     padding:12px;
     width: 600px;
+    background:transparent;
+
 }
 
 .input-box img{
@@ -83,9 +66,11 @@
 }
 
 .episode-title{
-    font-family: 'Kanit', sans-serif;
+    font-family: 'Source Sans Pro', sans-serif;
+    color:white
 }
 
 .episode-desc{
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Source Sans Pro', sans-serif;
+    color:white
 }
