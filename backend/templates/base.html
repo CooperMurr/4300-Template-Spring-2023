@@ -39,6 +39,7 @@
         }
 
         function filterText() {
+            var resultCounter = 0;
             document.getElementById("answer-box").innerHTML = ""
             console.log(document.getElementById("filter-text-val").value)
             var plHeader = document.createElement("h2");
@@ -47,10 +48,12 @@
             fetch("/songs?" + new URLSearchParams({ title: document.getElementById("filter-text-val").value }).toString())
                 .then((response) => response.json())
                 .then((data) => data.forEach(row => {
-
-                    let tempDiv = document.createElement("div")
-                    tempDiv.innerHTML = answerBoxTemplate(row.song, row.artist, row.link)
-                    document.getElementById("answer-box").appendChild(tempDiv)
+                    if (resultCounter < 10) {
+                        let tempDiv = document.createElement("div")
+                        tempDiv.innerHTML = answerBoxTemplate(row.song, row.artist, row.link)
+                        document.getElementById("answer-box").appendChild(tempDiv)
+                    }
+                    resultCounter++;
                 }));
 
         }
