@@ -3,7 +3,8 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Source+Sans+Pro:wght@300&family=Open+Sans:wght@500&display=swap"
+<link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Source+Sans+Pro:wght@300&family=Open+Sans:wght@500&display=swap"
     rel="stylesheet">
 
 <body style="background-color:rgb(112, 57, 31);">
@@ -14,8 +15,7 @@
             </div>
             <div class="input-box" onclick="sendFocus()">
                 <img src="{{ url_for('static', filename='images/mag.png') }}" />
-                <input placeholder="Search for a song" id="filter-text-val"
-                    onkeyup="filterText()">
+                <input placeholder="Search for a song" id="filter-text-val" onkeyup="filterText()">
             </div>
         </div>
         <div id="answer-box">
@@ -40,7 +40,7 @@
         function filterText() {
             document.getElementById("answer-box").innerHTML = ""
             console.log(document.getElementById("filter-text-val").value)
-            fetch("/episodes?" + new URLSearchParams({ title: document.getElementById("filter-text-val").value }).toString())
+            fetch("/songs?" + new URLSearchParams({ title: document.getElementById("filter-text-val").value }).toString())
                 .then((response) => response.json())
                 .then((data) => data.forEach(row => {
 
