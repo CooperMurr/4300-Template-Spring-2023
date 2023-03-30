@@ -19,18 +19,22 @@
             </div>
         </div>
         <div id="answer-box">
-
+            <!-- <iframe style="border-radius:12px"
+                src="https://open.spotify.com/embed/playlist/09Jg0zbjHWrsgjFmNTRGIX?utm_source=generator" width="100%"
+                height="352" frameBorder="0" allowfullscreen=""
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                loading="lazy"></iframe> -->
         </div>
     </div>
+    <script src="{{url_for('static', filename='spotify.js')}}">
+
+    </script>
 
     <script>
-        const clientId = "62df10fd27b24fe3bbf1256444216cd0";
-        const code = undefined;
 
-        function answerBoxTemplate(title, artist, link) {
+        function answerBoxTemplate(title, artist) {
             return `<div class='results'>
                 <h3 class='episode-title'>${artist} - ${title}</h3>
-                <p class='episode-desc'>${link}</p>
             </div>`
         }
 
@@ -38,25 +42,48 @@
             document.getElementById('filter-text-val').focus()
         }
 
+        async function callSearch(search_info) {
+            accessToken = await getAccessToken();
+            const searchRes = await Promise.all(search_info.map(song => searchTrack(song[0], song[1], accessToken)));
+            return searchRes;
+        }
+
         function filterText() {
+            const searchInfo = [];
+            const promises = [];
             var resultCounter = 0;
             document.getElementById("answer-box").innerHTML = ""
-            console.log(document.getElementById("filter-text-val").value)
             var plHeader = document.createElement("h2");
             plHeader.innerHTML = "Recommended Playlist";
             document.getElementById("answer-box").appendChild(plHeader);
             fetch("/songs?" + new URLSearchParams({ title: document.getElementById("filter-text-val").value }).toString())
                 .then((response) => response.json())
-                .then((data) => data.forEach(row => {
-                    if (resultCounter < 10) {
-                        let tempDiv = document.createElement("div")
-                        tempDiv.innerHTML = answerBoxTemplate(row.song, row.artist, row.link)
-                        document.getElementById("answer-box").appendChild(tempDiv)
-                    }
-                    resultCounter++;
-                }));
+                .then((data) => {
+                    data.forEach(row => {
+                        if (resultCounter < 10) {
+                            let tempDiv = document.createElement("div")
+                            tempDiv.innerHTML = answerBoxTemplate(row.song, row.artist)
+                            searchInfo.push([row.song, row.artist])
+                            document.getElementById("answer-box").appendChild(tempDiv)
+                        }
+                        resultCounter++;
 
+                    })
+
+                    callSearch(searchInfo)
+                        .then(ids => {
+                            ids.forEach(id => {
+                                if (id != '') {
+                                    promises.push(addTrackToPlaylist(id));
+                                }
+                            });
+                        }).then(() => Promise.all(promises)
+                            .then(val => generatePlaylistEmbed())
+                            .catch(error => console.error('Error adding tracks to playlist:', error)));
+
+                });
         }
+
 
         function checkEnter(event) {
             if (event.keyCode === 13) {
@@ -64,5 +91,8 @@
             }
         }
 
+
     </script>
+
+
 </body>

@@ -12,7 +12,7 @@ os.environ['ROOT_PATH'] = os.path.abspath(os.path.join("..", os.curdir))
 # Don't worry about the deployment credentials, those are fixed
 # You can use a different DB name if you want to
 MYSQL_USER = "root"
-MYSQL_USER_PASSWORD = "S3Aledes"
+MYSQL_USER_PASSWORD = "nibroc25"
 MYSQL_PORT = 3306
 MYSQL_DATABASE = "bookbeatsdb"
 
