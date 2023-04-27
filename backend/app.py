@@ -14,7 +14,7 @@ os.environ['ROOT_PATH'] = os.path.abspath(os.path.join("..", os.curdir))
 # Don't worry about the deployment credentials, those are fixed
 # You can use a different DB name if you want to
 MYSQL_USER = "root"
-MYSQL_USER_PASSWORD = "^R4CQ3B%ArKTp*"
+MYSQL_USER_PASSWORD = "nibroc25"
 MYSQL_PORT = 3306
 MYSQL_DATABASE = "bookbeatsdb"
 
@@ -24,45 +24,56 @@ mysql_engine = MySQLDatabaseHandler(
 # Path to init.sql file. This file can be replaced with your own file for testing on localhost, but do NOT move the init.sql file
 mysql_engine.load_file_into_db()
 
-app = Flask(__name__)
+app = Flask(__name__) 
 CORS(app)
 
-def build_vectorizer(max_features, stop_words, max_df=0.8, min_df=5, norm='l2'):
+def build_vectorizer(max_features, stop_words, max_df=0.8, min_df=1, norm='l2'):
     vectorizer = TfidfVectorizer(max_features=max_features, stop_words=stop_words, max_df=max_df, min_df=min_df, norm=norm)
     return vectorizer
 
 def cos_search(song):
     n_feats = 5000
     tfidf_vec = build_vectorizer(n_feats, "english")
-    lyric = mysql_engine.query_selector(f"""SELECT playlistname FROM songs""").fetchall()
-   
-    lyric.append(song)
-    lyric =  [val[0] for val in lyric]
-    lyric = [val for val in lyric if val is not None]
 
-    lyric_by_vocab = tfidf_vec.fit_transform(lyric).toarray()
-    lyric_idx_to_vocab = {i:v for i, v in enumerate(tfidf_vec.get_feature_names())}
-    songlist = mysql_engine.query_selector(f"""SELECT trackname FROM songs""").fetchall()
-    songlist =  [val[0] for val in songlist]
-    songlist = [val for val in songlist if val is not None]
-    #cosine similarity
+    playlistnames = mysql_engine.query_selector(f"""SELECT playlistname FROM songs""").fetchall()
+    playlistnames = [val[0] for val in playlistnames]
+    playlistnames = [val for val in playlistnames if val is not None]
+
+    #remove dupes while keeping order
+    dupeless_names = {}
+    for name in playlistnames:
+        dupeless_names[name] = None #value is pointless, just using dict to remove dupes
+    playlistnames = [key for key in dupeless_names]
+
+    playlists_by_vocab = tfidf_vec.fit_transform(playlistnames).toarray()
+    input_by_vocab = tfidf_vec.transform([song]).toarray()
+    idx_to_vocab = {i:v for i, v in enumerate(tfidf_vec.get_feature_names())}
+
+    # songlist = mysql_engine.query_selector(f"""SELECT trackname FROM songs""").fetchall()
+    # songlist =  [val[0] for val in songlist]
+    # songlist = [val for val in songlist if val is not None]
+    # #cosine similarity
     top = []
-    d1 = lyric_by_vocab[-1]
-    print(lyric_by_vocab)
-    for n in range(0,len(lyric) - 1):
-        d2 = lyric_by_vocab[n]
-        sim = (np.dot(d1, d2))/(np.dot(np.linalg.norm(d1), np.linalg.norm(d2)))
+    d1 = input_by_vocab[0]
+    # print(lyric_by_vocab)
+    for n in range(0,len(playlistnames) - 1):
+        d2 = playlists_by_vocab[n]
+        # print(d2, np.linalg.norm(d2))
+        numerator = (np.dot(d1,d2))
+        denom = np.linalg.norm(d1) * np.linalg.norm(d2)
+        # print(denom)
+        sim = numerator/denom
         top.append((n, sim))
-    top.sort(key = lambda tup: tup[1])
-    print(top)
+    top = sorted(top, key=lambda x: x[1], reverse=True)
     #search dataset
     data = []
     keys = ["user_id", "artistname", "trackname", "playlistname"]
+    
     for m in range(0, 10):
-        query_sql = f"""SELECT * FROM songs WHERE trackname = {songlist[top[m][0]]} limit 1"""
+        query_sql = f"""SELECT * FROM songs WHERE playlistname = '{playlistnames[top[m][0]]}' limit 1"""
         data.append(mysql_engine.query_selector(query_sql))
     print(data)
-    return json.dumps([dict(zip(keys, i)) for i in data])
+    # return json.dumps([dict(zip(keys, i)) for i in data])
 
 def sql_search(song):
     n_feats = 5000
@@ -88,8 +99,10 @@ def home():
 @app.route("/songs")
 def songs_search():
     text = request.args.get("title")
+    print(text)
     book = request.args.get("book")
     ret = sql_search(text)
+    cos_search(text)
     return ret
 
 
