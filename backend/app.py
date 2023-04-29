@@ -7,6 +7,7 @@ from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
 from sklearn.feature_extraction.text import TfidfVectorizer
 from scipy.sparse.linalg import svds
 from sklearn.preprocessing import normalize
+import math
 
 # ROOT_PATH for linking with all your files.
 # Feel free to use a config.py or settings.py with a global export variable
@@ -58,7 +59,21 @@ def svd(theme):
         asort = np.argsort(-sims)[:k+1]
         return [(index_to_word[i],sims[i]) for i in asort[1:]]
     
-    closest_word_list = []
+
+    def query_exp(query):
+        query_list = query.split()
+        sz = len(query_list)
+        num_closest = math.ceil((10-sz)/sz)
+
+        closest_word_list = query_list
+        
+        for word in query_list:
+            for w, sim in closest_words(word,words_compressed_normed):
+                closest_word_list.append(w)
+        
+        return closest_word_list
+    
+    closest_word_list = query_exp(theme)
 
     #search
     data = []
