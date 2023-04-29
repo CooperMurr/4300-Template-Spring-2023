@@ -48,7 +48,7 @@
             var plHeader = document.createElement("h2");
             plHeader.innerHTML = "Recommended Playlist";
             document.getElementById("answer-box").appendChild(plHeader);
-            fetch("/songs?" + new URLSearchParams({ title: document.getElementById("filter-text-val").value, book: document.getElementById("filter-text-val2").value}).toString())
+            fetch("/songs?" + new URLSearchParams({ title: document.getElementById("filter-text-val").value, book: document.getElementById("filter-text-val2").value }).toString())
                 .then((response) => response.json())
                 .then((data) => data.forEach(row => {
                     if (resultCounter < 10) {
@@ -57,7 +57,10 @@
                         document.getElementById("answer-box").appendChild(tempDiv)
                     }
                     resultCounter++;
-                }));
+                }))
+                .catch(error => {
+                    throw (error);
+                });
 
         }
 

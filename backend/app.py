@@ -24,6 +24,7 @@ mysql_engine = MySQLDatabaseHandler(
 # Path to init.sql file. This file can be replaced with your own file for testing on localhost, but do NOT move the init.sql file
 mysql_engine.load_file_into_db()
 
+
 app = Flask(__name__) 
 CORS(app)
 
@@ -32,10 +33,13 @@ def build_vectorizer(max_features, stop_words, max_df=0.8, min_df=1, norm='l2'):
     return vectorizer
 
 def cos_search(song):
+    if mysql_engine is None:
+        return "Error: MySQL engine not intialized"
+    
     n_feats = 5000
     tfidf_vec = build_vectorizer(n_feats, "english")
 
-    playlistnames = mysql_engine.query_selector(f"""SELECT playlistname FROM songs""").fetchall()
+    playlistnames = mysql_engine.query_selector(f"""SELECT _playlistname_ FROM songs""").fetchall()
     playlistnames = [val[0] for val in playlistnames]
     playlistnames = [val for val in playlistnames if val is not None]
 
@@ -67,13 +71,15 @@ def cos_search(song):
     top = sorted(top, key=lambda x: x[1], reverse=True)
     #search dataset
     data = []
-    keys = ["user_id", "artistname", "trackname", "playlistname"]
+    keys = ["user_id", "_artistname_", "_trackname_", "_playlistname_"]
     
     for m in range(0, 10):
-        query_sql = f"""SELECT * FROM songs WHERE playlistname = '{playlistnames[top[m][0]]}' limit 1"""
-        data.append(mysql_engine.query_selector(query_sql))
-    print(data)
-    # return json.dumps([dict(zip(keys, i)) for i in data])
+        if (top[m][0] != None):
+            print(top[m][0])
+            print(playlistnames[top[m][0]])
+            query_sql = f"""SELECT * FROM songs WHERE _playlistname_ = '{playlistnames[top[m][0]]}' limit 1"""
+            data.append(mysql_engine.query_selector(query_sql))
+    return json.dumps([dict(zip(keys, i)) for i in data])
 
 def sql_search(song):
     n_feats = 5000
@@ -99,7 +105,6 @@ def home():
 @app.route("/songs")
 def songs_search():
     text = request.args.get("title")
-    print(text)
     book = request.args.get("book")
     ret = sql_search(text)
     cos_search(text)

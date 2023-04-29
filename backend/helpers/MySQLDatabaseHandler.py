@@ -34,6 +34,7 @@ class MySQLDatabaseHandler(object):
 
     def query_selector(self,query):
         conn = self.lease_connection()
+        conn.execute(f"USE {self.MYSQL_DATABASE}")
         data = conn.execute(query)
         return data
 
@@ -41,7 +42,7 @@ class MySQLDatabaseHandler(object):
         if self.IS_DOCKER:
             return
         if file_path is None:
-            file_path = os.path.join(os.environ['ROOT_PATH'],'init.sql')
+            file_path = os.path.join(os.environ['ROOT_PATH'],'initsmall.sql')
         sql_file = open(file_path,"r")
         sql_file_data = list(filter(lambda x:x != '',sql_file.read().split(";\n")))
         self.query_executor(sql_file_data)
