@@ -35,13 +35,13 @@ def build_vectorizer(max_features, stop_words, max_df=0.8, min_df=1, norm='l2'):
     vectorizer = TfidfVectorizer(max_features=max_features, stop_words=stop_words, max_df=max_df, min_df=min_df, norm=norm)
     return vectorizer
 
-def svd(theme):
+def svd_search(theme):
     n_feats = 5000
     vectorizer = build_vectorizer(n_feats,"english")
     
-    lists = mysql_engine.query_selector(f"""SELECT playlistname FROM songs""").fetchall()
+    lists = mysql_engine.query_selector(f"""SELECT _playlistname_ FROM songs""").fetchall()
     names = [x[0] for x in lists if x[0] is not None]
-    
+    print("hi")
     #svd
     td_mat = vectorizer.fit_transform([x for x in names])
     docs_compressed, s, words_compressed = svds(td_mat, k=100)
@@ -51,7 +51,7 @@ def svd(theme):
     index_to_word = {i:t for t,i in word_to_index.items()}
 
     words_compressed_normed = normalize(words_compressed, axis = 1)
-
+    print(words_compressed_normed[0])
     # cosine similarity
     def closest_words(word_in, words_representation_in, k = 10):
         if word_in not in word_to_index: return "No results"
@@ -68,12 +68,13 @@ def svd(theme):
         closest_word_list = query_list
         
         for word in query_list:
-            for w, sim in closest_words(word,words_compressed_normed):
+            for w, sim in closest_words(word,words_compressed_normed, num_closest):
                 closest_word_list.append(w)
         
         return closest_word_list
     
     closest_word_list = query_exp(theme)
+    print("cwl", closest_word_list)
 
     #search
     data = []
@@ -95,7 +96,8 @@ def svd(theme):
 
     top = sorted(top, key=lambda x: x[1], reverse=True)
 
-    top = sorted(top, key=lambda x: x[1], reverse=True)
+    print("top", top)
+
     #search dataset
     data = []
     keys = ["user_id", "_artistname_", "_trackname_", "_playlistname_"]
@@ -109,6 +111,8 @@ def svd(theme):
     for cursor in data: 
         for i in cursor: 
             result_list.append(dict(zip(keys,i)))
+    
+    print("results",result_list)
     
     return json.dumps(result_list)
 
@@ -191,8 +195,9 @@ def home():
 def songs_search():
     text = request.args.get("title")
     book = request.args.get("book")
-    ret = sql_search(text)
-    ret = cos_search(text)
+    # ret = sql_search(text)
+    # ret = cos_search(text)
+    ret = svd_search(text)
     return ret
 
 
