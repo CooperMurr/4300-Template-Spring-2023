@@ -75,11 +75,15 @@ def cos_search(song):
     
     for m in range(0, 10):
         if (top[m][0] != None):
-            print(top[m][0])
-            print(playlistnames[top[m][0]])
             query_sql = f"""SELECT * FROM songs WHERE _playlistname_ = '{playlistnames[top[m][0]]}' limit 1"""
             data.append(mysql_engine.query_selector(query_sql))
-    return json.dumps([dict(zip(keys, i)) for i in data])
+        
+    result_list = []
+    for cursor in data: 
+        for i in cursor: 
+            result_list.append(dict(zip(keys,i)))
+    
+    return json.dumps(result_list)
 
 def sql_search(song):
     n_feats = 5000
@@ -93,7 +97,7 @@ def sql_search(song):
     query_sql = f"""SELECT * FROM songs WHERE LOWER( _playlistname_ ) LIKE '%%{song.lower()}%%' limit 10"""
     keys = ["user_id", "_artistname_", "_trackname_", "_playlistname_"]
     data = mysql_engine.query_selector(query_sql)
-    
+
     return json.dumps([dict(zip(keys, i)) for i in data])
 
 
@@ -107,7 +111,7 @@ def songs_search():
     text = request.args.get("title")
     book = request.args.get("book")
     ret = sql_search(text)
-    cos_search(text)
+    ret = cos_search(text)
     return ret
 
 
