@@ -53,7 +53,7 @@
                 .then((data) => data.forEach(row => {
                     if (resultCounter < 10) {
                         let tempDiv = document.createElement("div")
-                        tempDiv.innerHTML = answerBoxTemplate(row.trackname, row.artistname, row.playlistname)
+                        tempDiv.innerHTML = answerBoxTemplate(row._trackname_, row._artistname_, row._playlistname_)
                         document.getElementById("answer-box").appendChild(tempDiv)
                     }
                     resultCounter++;

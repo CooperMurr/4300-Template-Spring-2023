@@ -84,8 +84,8 @@ def sql_search(song):
         x = x + "'%%" + word.lower() + "%%'" + " OR "
     x = x[:-4]
     #query_sql = f"""SELECT playlistname FROM songs"""
-    query_sql = f"""SELECT * FROM songs WHERE LOWER( playlistname ) LIKE '%%{song.lower()}%%' limit 10"""
-    keys = ["user_id", "artistname", "trackname", "playlistname"]
+    query_sql = f"""SELECT * FROM songs WHERE LOWER( _playlistname_ ) LIKE '%%{song.lower()}%%' limit 10"""
+    keys = ["user_id", "_artistname_", "_trackname_", "_playlistname_"]
     data = mysql_engine.query_selector(query_sql)
     
     return json.dumps([dict(zip(keys, i)) for i in data])
