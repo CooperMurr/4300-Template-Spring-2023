@@ -5,6 +5,8 @@ from flask_cors import CORS
 import numpy as np
 from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
 from sklearn.feature_extraction.text import TfidfVectorizer
+from scipy.sparse.linalg import svds
+from sklearn.preprocessing import normalize
 
 # ROOT_PATH for linking with all your files.
 # Feel free to use a config.py or settings.py with a global export variable
@@ -31,6 +33,44 @@ CORS(app)
 def build_vectorizer(max_features, stop_words, max_df=0.8, min_df=1, norm='l2'):
     vectorizer = TfidfVectorizer(max_features=max_features, stop_words=stop_words, max_df=max_df, min_df=min_df, norm=norm)
     return vectorizer
+
+def svd(theme):
+    n_feats = 5000
+    vectorizer = build_vectorizer(n_feats,"english")
+    
+    lists = mysql_engine.query_selector(f"""SELECT playlistname FROM songs""").fetchall()
+    names = [x[0] for x in lists if x[0] is not None]
+    
+    #svd
+    td_mat = vectorizer.fit_transform([x for x in names])
+    docs_compressed, s, words_compressed = svds(td_mat, k=100)
+    words_compressed = words_compressed.transpose()
+
+    word_to_index = vectorizer.vocabulary_
+    index_to_word = {i:t for t,i in word_to_index.items()}
+
+    words_compressed_normed = normalize(words_compressed, axis = 1)
+
+    # cosine similarity
+    def closest_words(word_in, words_representation_in, k = 10):
+        if word_in not in word_to_index: return "No results"
+        sims = words_representation_in.dot(words_representation_in[word_to_index[word_in],:])
+        asort = np.argsort(-sims)[:k+1]
+        return [(index_to_word[i],sims[i]) for i in asort[1:]]
+    
+    # #search
+    # data = []
+    # keys = ["user_id", "artistname", "trackname", "playlistname"]
+
+    # songlist = mysql_engine.query_selector(f"""SELECT trackname FROM songs""").fetchall()
+    # songlist =  [val[0] for val in songlist]
+    # songlist = [val for val in songlist if val is not None]
+
+    # for w, sim in closest_words(theme, words_compressed_normed):
+    #     query_sql = f"""SELECT * FROM songs WHERE trackname = {songlist[w]} limit 1"""
+    #     data.append(mysql_engine.query_selector(query_sql))
+    # print(data)
+    # return json.dumps([dict(zip(keys,i)) for i in data])
 
 def cos_search(song):
     if mysql_engine is None:
