@@ -58,19 +58,45 @@ def svd(theme):
         asort = np.argsort(-sims)[:k+1]
         return [(index_to_word[i],sims[i]) for i in asort[1:]]
     
-    # #search
-    # data = []
-    # keys = ["user_id", "artistname", "trackname", "playlistname"]
+    closest_word_list = []
 
-    # songlist = mysql_engine.query_selector(f"""SELECT trackname FROM songs""").fetchall()
-    # songlist =  [val[0] for val in songlist]
-    # songlist = [val for val in songlist if val is not None]
+    #search
+    data = []
+    keys = ["user_id", "_artistname_", "_trackname_", "_playlistname_"]
 
-    # for w, sim in closest_words(theme, words_compressed_normed):
-    #     query_sql = f"""SELECT * FROM songs WHERE trackname = {songlist[w]} limit 1"""
-    #     data.append(mysql_engine.query_selector(query_sql))
-    # print(data)
-    # return json.dumps([dict(zip(keys,i)) for i in data])
+    playlists_by_vocab = vectorizer.fit_transform(names).toarray()
+    input_by_vocab = vectorizer.transform(closest_word_list).toarray()
+
+    #cosine similarity
+    top = []
+    d1 = input_by_vocab[0]
+    for d1 in input_by_vocab:
+        for n in range(0,len(names)):
+            d2 = playlists_by_vocab[n]
+            numerator = (np.dot(d1,d2))
+            denom = np.linalg.norm(d1) * np.linalg.norm(d2)
+            sim = numerator/denom
+            top.append((n, sim))
+
+    top = sorted(top, key=lambda x: x[1], reverse=True)
+
+    top = sorted(top, key=lambda x: x[1], reverse=True)
+    #search dataset
+    data = []
+    keys = ["user_id", "_artistname_", "_trackname_", "_playlistname_"]
+    
+    for m in range(0, 10):
+        if (top[m][0] != None):
+            query_sql = f"""SELECT * FROM songs WHERE _playlistname_ = '{names[top[m][0]]}' limit 1"""
+            data.append(mysql_engine.query_selector(query_sql))
+        
+    result_list = []
+    for cursor in data: 
+        for i in cursor: 
+            result_list.append(dict(zip(keys,i)))
+    
+    return json.dumps(result_list)
+
 
 def cos_search(song):
     if mysql_engine is None:
@@ -100,7 +126,7 @@ def cos_search(song):
     top = []
     d1 = input_by_vocab[0]
     # print(lyric_by_vocab)
-    for n in range(0,len(playlistnames) - 1):
+    for n in range(0,len(playlistnames)):
         d2 = playlists_by_vocab[n]
         # print(d2, np.linalg.norm(d2))
         numerator = (np.dot(d1,d2))
