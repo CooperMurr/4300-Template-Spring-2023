@@ -41,7 +41,7 @@ def svd_search(theme):
     
     lists = mysql_engine.query_selector(f"""SELECT _playlistname_ FROM songs""").fetchall()
     names = [x[0] for x in lists if x[0] is not None]
-    print("hi")
+    names = list(set(names))
     #svd
     td_mat = vectorizer.fit_transform([x for x in names])
     docs_compressed, s, words_compressed = svds(td_mat, k=100)
@@ -51,9 +51,8 @@ def svd_search(theme):
     index_to_word = {i:t for t,i in word_to_index.items()}
 
     words_compressed_normed = normalize(words_compressed, axis = 1)
-    print(words_compressed_normed[0])
     # cosine similarity
-    def closest_words(word_in, words_representation_in, k = 10):
+    def closest_words(word_in, words_representation_in, k):
         if word_in not in word_to_index: return "No results"
         sims = words_representation_in.dot(words_representation_in[word_to_index[word_in],:])
         asort = np.argsort(-sims)[:k+1]
@@ -65,12 +64,13 @@ def svd_search(theme):
         sz = len(query_list)
         num_closest = math.ceil((10-sz)/sz)
 
-        closest_word_list = query_list
+        closest_word_list = list.copy(query_list)
         
+      
         for word in query_list:
-            for w, sim in closest_words(word,words_compressed_normed, num_closest):
+            closest_w = closest_words(word,words_compressed_normed, num_closest)
+            for w, sim in closest_w:
                 closest_word_list.append(w)
-        
         return closest_word_list
     
     closest_word_list = query_exp(theme)
@@ -84,25 +84,33 @@ def svd_search(theme):
     input_by_vocab = vectorizer.transform(closest_word_list).toarray()
 
     #cosine similarity
-    top = []
-    d1 = input_by_vocab[0]
+    top = {}
+    # d1 = input_by_vocab[0]
     for d1 in input_by_vocab:
         for n in range(0,len(names)):
             d2 = playlists_by_vocab[n]
             numerator = (np.dot(d1,d2))
             denom = np.linalg.norm(d1) * np.linalg.norm(d2)
             sim = numerator/denom
-            top.append((n, sim))
+            if n in top and not math.isnan(sim) and sim != 0.0:
+                if top[n] < sim:
+                    top[n] = sim
+            elif not math.isnan(sim) and sim != 0.0:
+                top[n] = sim
+
+    top = list(top.items())
+    top = [tup for tup in top if tup[1] != 0.0]
 
     top = sorted(top, key=lambda x: x[1], reverse=True)
+    print(len(top))
+    print(top)
 
-    print("top", top)
 
     #search dataset
     data = []
     keys = ["user_id", "_artistname_", "_trackname_", "_playlistname_"]
     
-    for m in range(0, 10):
+    for m in range(0, min(len(top),10)):
         if (top[m][0] != None):
             query_sql = f"""SELECT * FROM songs WHERE _playlistname_ = '{names[top[m][0]]}' limit 1"""
             data.append(mysql_engine.query_selector(query_sql))
@@ -154,6 +162,7 @@ def cos_search(song):
         sim = numerator/denom
         top.append((n, sim))
     top = sorted(top, key=lambda x: x[1], reverse=True)
+  
     #search dataset
     data = []
     keys = ["user_id", "_artistname_", "_trackname_", "_playlistname_"]
