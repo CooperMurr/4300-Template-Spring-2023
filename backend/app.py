@@ -48,23 +48,20 @@ def cos_search(song):
     #cosine similarity
     top = []
     d1 = lyric_by_vocab[-1]
-    print(lyric_by_vocab)
     for n in range(0,len(lyric) - 1):
         d2 = lyric_by_vocab[n]
         sim = (np.dot(d1, d2))/(np.dot(np.linalg.norm(d1), np.linalg.norm(d2)))
         top.append((n, sim))
     top.sort(key = lambda tup: tup[1])
-    print(top)
     #search dataset
     data = []
     keys = ["user_id", "artistname", "trackname", "playlistname"]
     for m in range(0, 10):
         query_sql = f"""SELECT * FROM songs WHERE trackname = {songlist[top[m][0]]} limit 1"""
         data.append(mysql_engine.query_selector(query_sql))
-    print(data)
     return json.dumps([dict(zip(keys, i)) for i in data])
 
-def sql_search(song):
+def sql_search(song, ratings):
     n_feats = 5000
     tfidf_vec = build_vectorizer(n_feats, "english")
 
@@ -76,8 +73,19 @@ def sql_search(song):
     query_sql = f"""SELECT * FROM songs WHERE LOWER( _playlistname_ ) LIKE '%%{song.lower()}%%' limit 10"""
     keys = ["user_id", "_artistname_", "_trackname_", "_playlistname_"]
     data = mysql_engine.query_selector(query_sql)
-    
-    return json.dumps([dict(zip(keys, i)) for i in data])
+    tempDict = [dict(zip(keys, i)) for i in data]
+ 
+    downVotes = []
+    for row in tempDict:
+        if row['_trackname_'] in ratings:
+            if ratings[row['_trackname_']] == -1:
+                print(row['_trackname_'])
+                downVotes.append(row)
+    for row in downVotes:
+        temp = row
+        tempDict.remove(row)
+        tempDict.append(temp)
+    return json.dumps(tempDict) 
 
 
 @app.route("/")
@@ -89,7 +97,11 @@ def home():
 def songs_search():
     text = request.args.get("title")
     book = request.args.get("book")
-    ret = sql_search(text)
+    ratings = request.args.get("map")
+    ratings = json.loads(ratings)
+    
+    ret = sql_search(text, ratings)
+
     return ret
 
 
