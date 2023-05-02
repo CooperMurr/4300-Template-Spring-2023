@@ -249,4 +249,4 @@ def songs_search():
     return svd_search(text, ratings)
 
 
-app.run(debug=True)
+app.run(debug=False)
