@@ -14,11 +14,11 @@
             <div class="google-colors">
                 <h1 id="title">BookBeats</h1>
             </div>
-            <div class="input-box" onclick="sendFocus('filter-text-val2')">
+            <div class="input-box" onclick="sendFocus('filter-text-val2', true)">
                 <img src="{{ url_for('static', filename='images/mag.png') }}" />
                 <input placeholder="Enter the title of your book" id="filter-text-val2" onkeyup="checkEnter(event)">
             </div>
-            <div class="input-box" onclick="sendFocus('filter-text-val')">
+            <div class="input-box" onclick="sendFocus('filter-text-val', false)">
                 <input placeholder="Give your playlist a theme" id="filter-text-val" onkeyup="checkEnter(event)">
             </div>
         </div>
@@ -33,7 +33,7 @@
         const clientId = "62df10fd27b24fe3bbf1256444216cd0";
         const code = undefined;
         const ratingsMap = new Map();
-
+        var enteredTitle = false;
         function updateRatings(trackname, isDown, isOn) {
             if (ratingsMap.has(trackname) && !isOn) {
                 var ret = (ratingsMap.get(trackname) == 1 && isDown || (ratingsMap.get(trackname) == -1 && !isDown))
@@ -81,7 +81,9 @@
             `
         }
 
-        function sendFocus(elementID) {
+        function sendFocus(elementID, title) 
+        {
+            enteredTitle = title;
             document.getElementById(elementID).focus()
         }
 
@@ -105,7 +107,7 @@
             var plHeader = document.createElement("h2");
             plHeader.innerHTML = "Recommended Playlist";
             document.getElementById("answer-box").appendChild(plHeader);
-            fetch("/songs?" + new URLSearchParams({ title: document.getElementById("filter-text-val").value, book: document.getElementById("filter-text-val2").value, map: JSON.stringify(Object.fromEntries(ratingsMap)) }).toString())
+            fetch("/songs?" + new URLSearchParams({ title: document.getElementById("filter-text-val").value, book: document.getElementById("filter-text-val2").value, map: JSON.stringify(Object.fromEntries(ratingsMap)), isTitle: enteredTitle }).toString())
                 .then((response) => response.json())
                 .then((data) => data.forEach(row => {
                     if (resultCounter < 10) {
@@ -122,7 +124,10 @@
 
                     }
                     resultCounter++;
-                }));
+                }))
+                .catch(error => {
+                    throw (error);
+                });
 
 
 
