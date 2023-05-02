@@ -7,83 +7,131 @@
     href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Source+Sans+Pro:wght@300&family=Open+Sans:wght@500&display=swap"
     rel="stylesheet">
 
+
 <body style="background-color:rgb(112, 57, 31);">
     <div class="full-body-container">
         <div class="top-text">
             <div class="google-colors">
                 <h1 id="title">BookBeats</h1>
             </div>
-            <div class="input-box" onclick="sendFocus()">
+            <div class="input-box" onclick="sendFocus('filter-text-val2', true)">
                 <img src="{{ url_for('static', filename='images/mag.png') }}" />
+                <input placeholder="Enter the title of your book" id="filter-text-val2" onkeyup="checkEnter(event)">
+            </div>
+            <div class="input-box" onclick="sendFocus('filter-text-val', false)">
                 <input placeholder="Give your playlist a theme" id="filter-text-val" onkeyup="checkEnter(event)">
             </div>
         </div>
+
         <div id="answer-box">
-            <!-- <iframe style="border-radius:12px"
-                src="https://open.spotify.com/embed/playlist/09Jg0zbjHWrsgjFmNTRGIX?utm_source=generator" width="100%"
-                height="352" frameBorder="0" allowfullscreen=""
-                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                loading="lazy"></iframe> -->
+
         </div>
     </div>
-    <script src="{{url_for('static', filename='spotify.js')}}">
 
-    </script>
 
     <script>
+        const clientId = "62df10fd27b24fe3bbf1256444216cd0";
+        const code = undefined;
+        const ratingsMap = new Map();
+        var enteredTitle = false;
+        function updateRatings(trackname, isDown, isOn) {
+            if (ratingsMap.has(trackname) && !isOn) {
+                var ret = (ratingsMap.get(trackname) == 1 && isDown || (ratingsMap.get(trackname) == -1 && !isDown))
+                ratingsMap.set(trackname, isDown ? -1 : 1);
 
-        function answerBoxTemplate(title, artist) {
+                return ret;
+            }
+            else {
+                if(!isOn)
+                {
+                    ratingsMap.set(trackname, isDown ? -1 : 1);
+                }
+                else
+                {
+                    ratingsMap.set(trackname, 0);
+                }
+                return false;
+            }
+            return false;
+        }
+
+        function answerBoxTemplate(trackname, artistname, playlistname) {
             return `<div class='results'>
-                <h3 class='episode-title'>${artist} - ${title}</h3>
-            </div>`
+                <h3 class='episode-title'>${artistname} - ${trackname}</h3>
+                <p class='episode-desc'>${playlistname}</p>
+            </div>
+            <span style="
+                display: inline-block;
+                cursor: pointer;
+                color: #687074;">
+                <svg width="30" height="30" fill="currentColor" class="bi bi-hand-thumbs-down-fill" viewBox="0 0 16 16">
+                    <path d="M6.956 14.534c.065.936.952 1.659 1.908 1.42l.261-.065a1.378 1.378 0 0 0 1.012-.965c.22-.816.533-2.512.062-4.51.136.02.285.037.443.051.713.065 1.669.071 2.516-.211.518-.173.994-.68 1.2-1.272a1.896 1.896 0 0 0-.234-1.734c.058-.118.103-.242.138-.362.077-.27.113-.568.113-.856 0-.29-.036-.586-.113-.857a2.094 2.094 0 0 0-.16-.403c.169-.387.107-.82-.003-1.149a3.162 3.162 0 0 0-.488-.9c.054-.153.076-.313.076-.465a1.86 1.86 0 0 0-.253-.912C13.1.757 12.437.28 11.5.28H8c-.605 0-1.07.08-1.466.217a4.823 4.823 0 0 0-.97.485l-.048.029c-.504.308-.999.61-2.068.723C2.682 1.815 2 2.434 2 3.279v4c0 .851.685 1.433 1.357 1.616.849.232 1.574.787 2.132 1.41.56.626.914 1.28 1.039 1.638.199.575.356 1.54.428 2.591z"/>
+                </svg>
+            
+        </span>
+        <span style="
+                display:inline-block;
+                cursor: pointer;
+                color: #687074;">
+                <svg width="30" height="30" fill="currentColor" class="bi bi-hand-thumbs-up-fill" viewBox="0 0 16 16">
+                    <path d="M6.956 1.745C7.021.81 7.908.087 8.864.325l.261.066c.463.116.874.456 1.012.965.22.816.533 2.511.062 4.51a9.84 9.84 0 0 1 .443-.051c.713-.065 1.669-.072 2.516.21.518.173.994.681 1.2 1.273.184.532.16 1.162-.234 1.733.058.119.103.242.138.363.077.27.113.567.113.856 0 .289-.036.586-.113.856-.039.135-.09.273-.16.404.169.387.107.819-.003 1.148a3.163 3.163 0 0 1-.488.901c.054.152.076.312.076.465 0 .305-.089.625-.253.912C13.1 15.522 12.437 16 11.5 16H8c-.605 0-1.07-.081-1.466-.218a4.82 4.82 0 0 1-.97-.484l-.048-.03c-.504-.307-.999-.609-2.068-.722C2.682 14.464 2 13.846 2 13V9c0-.85.685-1.432 1.357-1.615.849-.232 1.574-.787 2.132-1.41.56-.627.914-1.28 1.039-1.639.199-.575.356-1.539.428-2.59z"/>
+                </svg>
+            
+        </span>
+            `
         }
 
-        function sendFocus() {
-            document.getElementById('filter-text-val').focus()
+        function sendFocus(elementID, title) 
+        {
+            enteredTitle = title;
+            document.getElementById(elementID).focus()
         }
 
-        async function callSearch(search_info) {
-            accessToken = await getAccessToken();
-            const searchRes = await Promise.all(search_info.map(song => searchTrack(song[0], song[1], accessToken)));
-            return searchRes;
+
+
+        function addClickEvent(child, otherChild, trackname, isDown) {
+            child.addEventListener('click', event => {
+                var elem = event.currentTarget;
+                var on = elem.style.color = "rgb(244, 128, 36)" == elem.style.color
+                elem.style.color = on ? "#687074" : "#f48024";
+                var toggle = updateRatings(trackname, isDown, on);
+                if (toggle) {
+                    otherChild.style.color = "#687074"
+                }
+            }, false);
         }
 
         function filterText() {
-            const searchInfo = [];
-            const promises = [];
             var resultCounter = 0;
             document.getElementById("answer-box").innerHTML = ""
             var plHeader = document.createElement("h2");
             plHeader.innerHTML = "Recommended Playlist";
             document.getElementById("answer-box").appendChild(plHeader);
-            fetch("/songs?" + new URLSearchParams({ title: document.getElementById("filter-text-val").value }).toString())
+            fetch("/songs?" + new URLSearchParams({ title: document.getElementById("filter-text-val").value, book: document.getElementById("filter-text-val2").value, map: JSON.stringify(Object.fromEntries(ratingsMap)), isTitle: enteredTitle }).toString())
                 .then((response) => response.json())
-                .then((data) => {
-                    data.forEach(row => {
-                        if (resultCounter < 10) {
-                            let tempDiv = document.createElement("div")
-                            tempDiv.innerHTML = answerBoxTemplate(row.song, row.artist)
-                            searchInfo.push([row.song, row.artist])
-                            document.getElementById("answer-box").appendChild(tempDiv)
+                .then((data) => data.forEach(row => {
+                    if (resultCounter < 10) {
+                        let tempDiv = document.createElement("div")
+
+                        tempDiv.innerHTML = answerBoxTemplate(row._trackname_, row._artistname_, row._playlistname_)
+                        if (ratingsMap.has(row._trackname_) && ratingsMap.get(row._trackname_) != 0) {
+                            var num = ratingsMap.get(row._trackname_);
+                            tempDiv.children[num == 1 ? 2 : 1].style.color = "#f48024"
                         }
-                        resultCounter++;
+                        addClickEvent(tempDiv.children[1], tempDiv.children[2], row._trackname_, true);
+                        addClickEvent(tempDiv.children[2], tempDiv.children[1], row._trackname_, false);
+                        document.getElementById("answer-box").appendChild(tempDiv);
 
-                    })
-
-                    callSearch(searchInfo)
-                        .then(ids => {
-                            ids.forEach(id => {
-                                if (id != '') {
-                                    promises.push(addTrackToPlaylist(id));
-                                }
-                            });
-                        }).then(() => Promise.all(promises)
-                            .then(val => generatePlaylistEmbed())
-                            .catch(error => console.error('Error adding tracks to playlist:', error)));
-
+                    }
+                    resultCounter++;
+                }))
+                .catch(error => {
+                    throw (error);
                 });
-        }
 
+
+
+        }
 
         function checkEnter(event) {
             if (event.keyCode === 13) {
@@ -91,8 +139,5 @@
             }
         }
 
-
     </script>
-
-
 </body>
