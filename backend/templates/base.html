@@ -14,10 +14,6 @@
             <div class="google-colors">
                 <h1 id="title">BookBeats</h1>
             </div>
-            <div class="input-box" onclick="sendFocus('filter-text-val2', true)">
-                <img src="{{ url_for('static', filename='images/mag.png') }}" />
-                <input placeholder="Enter the title of your book" id="filter-text-val2" onkeyup="checkEnter(event)">
-            </div>
             <div class="input-box" onclick="sendFocus('filter-text-val', false)">
                 <input placeholder="Give your playlist a theme" id="filter-text-val" onkeyup="checkEnter(event)">
             </div>
@@ -107,7 +103,7 @@
             var plHeader = document.createElement("h2");
             plHeader.innerHTML = "Recommended Playlist";
             document.getElementById("answer-box").appendChild(plHeader);
-            fetch("/songs?" + new URLSearchParams({ title: document.getElementById("filter-text-val").value, book: document.getElementById("filter-text-val2").value, map: JSON.stringify(Object.fromEntries(ratingsMap)), isTitle: enteredTitle }).toString())
+            fetch("/songs?" + new URLSearchParams({ title: document.getElementById("filter-text-val").value, book: "test", map: JSON.stringify(Object.fromEntries(ratingsMap)), isTitle: enteredTitle }).toString())
                 .then((response) => response.json())
                 .then((data) => data.forEach(row => {
                     if (resultCounter < 10) {
