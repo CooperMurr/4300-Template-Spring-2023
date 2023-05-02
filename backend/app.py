@@ -90,8 +90,9 @@ def svd_search(theme, ratings):
         for word in query_list:
             closest_w = closest_words(
                 word, words_compressed_normed, num_closest)
-            for w, sim in closest_w:
-                closest_word_list.append(w)
+            if closest_w != "No results":
+                for w, _ in closest_w:
+                    closest_word_list.append(w)
         return closest_word_list
 
     closest_word_list = query_exp(theme)
@@ -131,7 +132,9 @@ def svd_search(theme, ratings):
     for m in range(0, min(len(top), 10)):
         if (top[m][0] != None):
             query_sql = f"""SELECT * FROM songs WHERE _playlistname_ = '{add_escape_chars(names[top[m][0]])}' limit 1"""
-            data.append(mysql_engine.query_selector(query_sql))
+            row = mysql_engine.query_selector(query_sql)
+            if row not in data:
+                data.append(row)
 
     result_list = []
 
