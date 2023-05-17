@@ -105,7 +105,19 @@ def svd_search(theme, ratings):
     input_by_vocab = vectorizer.transform(closest_word_list).toarray()
 
     # cosine similarity
-    top = {}
+    # Calculate the norms
+    input_norms = np.linalg.norm(input_by_vocab, axis=1)
+    playlist_norms = np.linalg.norm(playlists_by_vocab, axis=1)
+    dot_products = np.dot(input_by_vocab, playlists_by_vocab.T)
+
+    similarities = dot_products / (input_norms[:, np.newaxis] * playlist_norms)
+    similarities = np.nan_to_num(similarities)
+
+    # max sim value for each playlist
+    max_similarities = np.max(similarities, axis=0)
+
+    top_indices = np.argsort(max_similarities)[::-1][:10]
+    """ top = {}
     # d1 = input_by_vocab[0]
     for d1 in input_by_vocab:
         for n in range(0, len(names)):
@@ -122,15 +134,15 @@ def svd_search(theme, ratings):
     top = list(top.items())
     top = [tup for tup in top if tup[1] != 0.0]
 
-    top = sorted(top, key=lambda x: x[1], reverse=True)
+    top = sorted(top, key=lambda x: x[1], reverse=True) """
 
     # search dataset
     data = []
     keys = ["user_id", "_artistname_", "_trackname_", "_playlistname_"]
 
-    for m in range(0, min(len(top), 10)):
-        if (top[m][0] != None):
-            query_sql = f"""SELECT * FROM songs WHERE _playlistname_ = '{add_escape_chars(names[top[m][0]])}' limit 1"""
+    for m in range(0, min(len(top_indices), 10)):
+        if (top_indices[m] != None):
+            query_sql = f"""SELECT * FROM songs WHERE _playlistname_ = '{add_escape_chars(names[top_indices[m]])}' limit 1"""
             row = mysql_engine.query_selector(query_sql)
             if row not in data:
                 data.append(row)
@@ -247,4 +259,4 @@ def songs_search():
     ratings = json.loads(ratings)
     return svd_search(text, ratings)
 
-# app.run(debug=True)
+#app.run(debug=True)
